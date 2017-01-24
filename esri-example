@@ -1,0 +1,149 @@
+<div id="main-map-container" style="width: 100%; height: 800px;">
+<link rel="stylesheet" href="https://js.arcgis.com/3.15/esri/css/esri.css">
+<style>
+.input-text {
+	font-size: 14px;
+	font-style: normal;
+}
+</style>
+<script src="https://js.arcgis.com/3.15/"></script>
+    <script>
+        require(["esri/map", "esri/layers/FeatureLayer", "esri/InfoTemplate", "esri/renderers/SimpleRenderer", "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol","esri/Color","dojo/domReady!"], function(Map, FeatureLayer, InfoTemplate, SimpleRenderer, SimpleFillSymbol, SimpleLineSymbol, Color, opacityInfo) {
+
+					 map = new Map("mapDiv", {
+                center: [-110.948376, 36.016967],
+                zoom: 5,
+                basemap: "streets"
+            });
+						
+						
+						var states = new FeatureLayer("https://tigerweb.geo.census.gov/arcgis/rest/services/Census2010/tigerWMS_Census2010/MapServer/88?f=json", {
+                id: "states",
+                infoTemplate: esri.InfoTemplate({
+                    title: "${NAME}",
+										content: "Whatever you want goes here. POP100: ${POP100}"
+                }),
+                outFields: ["*"],
+								mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
+                visible: false
+            });
+							
+							states.on('load', function(){
+								
+								var renderer1 = new SimpleRenderer(new SimpleFillSymbol().setOutline(new SimpleLineSymbol().setWidth(0.3).setColor(new Color([0,0,0]))));
+											renderer1.setColorInfo({
+												field: "POP100",
+												minDataValue: 1000000,
+												maxDataValue: 20000000,
+												colors: [
+													new Color([255,255,255]),
+													new Color([12,35,75])
+												]
+											});
+									renderer1.setOpacityInfo({opacityValues: [0.7]});
+									states.setRenderer(renderer1);
+									
+							});
+
+					 
+					 var metros = new FeatureLayer("https://tigerweb.geo.census.gov/arcgis/rest/services/Census2010/tigerWMS_Census2010/MapServer/84", {
+                id: "metros",
+                 infoTemplate: esri.InfoTemplate({
+                    title: "${NAME}",
+										content: "Whatever you want goes here. POP100: ${POP100}"
+                }),
+                outFields: ["*"],
+								mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
+                visible: false
+            });
+           
+						metros.on('load',function(){  
+							
+							var renderer2 = new SimpleRenderer(new SimpleFillSymbol().setOutline(new SimpleLineSymbol().setWidth(0.3).setColor(new Color([0,0,0]))));
+											renderer2.setColorInfo({
+												field: "POP100",
+												minDataValue: 100000,
+												maxDataValue: 10000000,
+												colors: [
+													new Color([255, 255, 255]),
+													new Color([12,35,75])
+												]
+											});
+									renderer2.setOpacityInfo({opacityValues: [0.70]});
+									metros.setRenderer(renderer2);
+									
+           });
+					 
+					 
+					 var counties = new FeatureLayer("https://tigerweb.geo.census.gov/arcgis/rest/services/Census2010/tigerWMS_Census2010/MapServer/90?f=json", {
+                id: "counties",
+                infoTemplate: esri.InfoTemplate({
+                    title: "${NAME}",
+										content: "Whatever you want goes here. POP100: {POP100}"
+                }),
+                outFields: ["*"],
+								minScale: 22000000,
+								maxScale: 100.00000000673367,
+								mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
+                visible: false
+            });
+           
+						counties.on('load',function(){  
+							
+							var renderer2 = new SimpleRenderer(new SimpleFillSymbol().setOutline(new SimpleLineSymbol().setWidth(0.3).setColor(new Color([0,0,0]))));
+											renderer2.setColorInfo({
+												field: "POP100",
+												minDataValue: 100000,
+												maxDataValue: 1000000,
+												colors: [
+													new Color([255, 255, 255]),
+													new Color([12,35,75])
+												]
+											});
+									renderer2.setOpacityInfo({opacityValues: [0.70]});
+									counties.setRenderer(renderer2);
+									
+           });
+					 
+						
+
+            var layers = [states,metros,counties];
+            for (var i = 0; i < layers.length; i++) {
+                map.addLayer(layers[i]);
+            }
+						
+							 map.on("load", function(){
+									 map.resize();
+								});
+												
+						});
+
+						function toggleLayer(layer) 
+						{
+								if (map.getLayer(layer).visible) 
+						{
+								map.getLayer(layer).hide();
+						} else
+						{
+								map.getLayer(layer).show();
+						}
+						}					
+						
+						function stuffThatHappens(layer)
+						{
+								toggleLayer(layer);
+
+						}
+						
+						
+
+    </script><!-- #8590a0-->
+			<div id="mapDiv" style="width: 100%; height: 100%; position: absolute;"> <!-- change back to hard coded pixes for MAP background-color: #ebebd8;-->
+					<div style="position: absolute; z-index: 10; top: 100px; left: 20px; background-color: #d6d4d1; box-shadow: 10px 10px 5px #888888; border-radius: 0px 0px 0px 0px; width: 200px; height: 120px; padding: 20px;">
+							<span><b style="font-size: 20px;">Layers (Choose a geography)</b></span><hr/>
+							<input id="input-one"  type="checkbox" name="layers" value="states" unchecked onChange="stuffThatHappens('states');"><span class="input-text">States</span><br>
+							<input id="input-two"  type="checkbox" name="layers" value="metros" unchecked onChange="stuffThatHappens('metros');"><span class="input-text">Metros</span><br>
+							<input id="input-two"  type="checkbox" name="layers" value="counties" unchecked onChange="stuffThatHappens('counties');"><span class="input-text">Counties</span><br>
+					</div>
+			</div>
+  </div>
