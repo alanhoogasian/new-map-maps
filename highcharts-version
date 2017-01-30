@@ -1,0 +1,120 @@
+function drawMap(div, metrosmapdata, statesmapdata, statesdata, metrosdata) {
+    var map = new Highcharts.Map({
+        chart: {
+            renderTo: div
+            //events: { drilldown: series: [id: 'states', data: countiesdata, mapdata: countiesmapdata, allAreas: false ]}}
+        },
+        credits: {
+            enabled: false
+        },
+        title: {
+            text: '<svg with="50" height="20"><rect width="50" height="20" style="background: linear-gradient(#ffffff, #0c234b);" /></svg><b>States and MSAs</b>'
+        },
+        subtitle: {
+            text: '<i>Click on Arizona to drilldown to County data</i>'
+        },
+        lang: {
+            thousandsSep: ","
+        },
+        colorAxis: {
+            enabled: true,
+            type: 'linear',
+            minColor: '#ffffff',
+            maxColor: '#0c234b',
+            nullColor: '#ffffff'
+        },
+        tooltip: {
+            formatter: function() {
+                /*var nullVal = this.point.value > 0 ? this.point.value : null;*/
+                return '<b>' + this.point.name + '</b>' + ": " + this.point.value;
+            }
+        },
+        series: [{
+                type: "map",
+                /*or mapbubble*/
+                name: "Toggle MSAs",
+                zIndex: 2,
+                showInLegend: true,
+                allAreas: true,
+                nullColor: '#ffffff',
+                mapData: metrosmapdata,
+                data: metrosdata,
+                joinBy: 'name',
+                borderWidth: 2,
+                colorAxis: true,
+                color: '#b6bec1',
+                /*colorAxis: {
+                	enabled: true,
+                	type: 'linear',
+                	minColor: '#ffffff',
+                	maxColor: '#0c234b',
+                	nullColor: '#ffffff'
+                },*/
+                states: {
+                    hover: {
+                        color: '#BADA55',
+                        borderColor: 'gray',
+                        borderWidth: 2.0
+                    }
+                }
+            },
+            {
+                type: "map",
+                name: "states",
+                zIndex: 1,
+                showInLegend: true,
+                allAreas: true,
+                mapData: statesmapdata,
+                data: statesdata,
+
+                joinBy: 'name',
+                borderWidth: 2,
+                /*colorAxis: {
+                	enabled: true,
+                	type: 'linear',
+                	minColor: '#ffffff',
+                	maxColor: '#0c234b',
+                	nullColor: '#ffffff'
+                },*/
+                states: {
+                    hover: {
+                        color: '#BADA55',
+                        borderColor: 'gray',
+                        borderWidth: 2.0
+                    }
+                }
+            }
+        ]
+
+    });
+    return map;
+}
+/*drawMap('thediv', metrosmapdata, mymapdata, d2[0], d2[1]);*/
+
+var datastring, jsondata, thedata;
+jQuery.ajax({
+    url: 'http://mapazdashboard.arizona.edu/chart/15566',
+    async: false,
+    success: function(result) {
+        datastring = jQuery(result).find('div.kwall-highcharts').attr('data-dataset-data');
+    }
+});
+jsondata = JSON.parse(datastring);
+thedata = jsondata.series;
+/*d2 is 2 dim array states, metros, counties.*/
+var d2 = [
+        [],
+        [],
+        []
+    ],
+    msas = ["Albuquerque", "Austin", "Colorado Springs", "Denver", "Portland", "El Paso", "Salt Lake City", "San Diego", "Tucson", "Las Vegas", "San Antonio", "Phoenix"],
+    counties = ["Greenlee", "Apache", "Cochise", "La Paz", "Maricopa", "Coconino", "Gila", "Pinal", "Graham", "Mohave", "Navajo", "Yuma", "Santa Cruz", "Yavapai", "Pima"];
+for (var i = 0; i < thedata.length; i++) {
+    newObj = {};
+    newObj.name = thedata[i].name;
+    newObj.value = parseFloat(thedata[i].data[thedata[i].data.length - 1][1]);
+    newObj.visible = true;
+    msas.indexOf(newObj.name) != -1 ? d2[1].push(newObj) : counties.indexOf(newObj.name) != -1 ? d2[2].push(newObj) : d2[0].push(newObj);
+}
+console.log(JSON.stringify(d2));
+console.log("|--end d2---|");
